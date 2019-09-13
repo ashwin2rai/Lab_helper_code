@@ -4,7 +4,7 @@ from io import StringIO
 class synchDICInstron:
     """
     Class synchs DIC and Instron CSVs. Assumes all times in CSVs are in seconds.
-    This assumes that the Instron file header is:
+    This assumes that the Instron file header is ordered as:
     Time | Extension | Load
     Exactly in that order without any units in the row. (Units in the next row is fine).
     If synchronization functions returns errors, header locations for CSVs have to specified explicitely. 
@@ -12,7 +12,6 @@ class synchDICInstron:
     writetoCSV(filename,Instronheader=17,DIC_header=3),
     where Instronheader is the row of the header of the Instron CSV table
     and DIC_header is the row of the header of the DIC CSV table
-    Generally it's an issue with the InstronFile so try a number +2 or -2 of what the row of the header should it. One of them will work.
     """
     def __init__(self,DIC_file,Instron_file,date):
         self.DIC_file = DIC_file
@@ -23,13 +22,19 @@ class synchDICInstron:
         if header_var is None:
             with open(self.Instron_file) as file:
                 temp_var = file.read()
-            inst_dat=pd.read_csv(StringIO(temp_var[temp_var.find('Load')-15:])).drop([0],axis=0)
+            try:
+                inst_dat=pd.read_csv(StringIO(temp_var[temp_var.find('Load')-15:])).drop([0],axis=0)
+            except:
+                print('Cannot read Instron DIC CSV. Try specifying the headers explicitely for ex: writetoCSV(filename,Instronheader=17,DIC_header=3). Please see class documentation for more info.')
             inst_dat['Load']=pd.to_numeric(inst_dat['Load'].str.replace(',', ''),errors='coerce')
             inst_dat=inst_dat.apply(pd.to_numeric)
             del(temp_var)
         else:
             self.header_sp = header_var-1
-            inst_dat=pd.read_csv(self.Instron_file,header=self.header_sp)
+            try:
+                inst_dat=pd.read_csv(self.Instron_file,header=self.header_sp)
+            except:
+                print('Cannot read Instron DIC CSV. Try specifying the headers explicitely for ex: writetoCSV(filename,Instronheader=17,DIC_header=3). Please see class documentation for more info.') 
             inst_dat.columns=pd.read_csv(self.Instron_file,header=self.header_sp-1,nrows=2).columns 
             inst_dat['Load']=pd.to_numeric(inst_dat['Load'].str.replace(',', ''),errors='coerce')
         
@@ -61,9 +66,9 @@ class synchDICInstron:
 
 
 date = '2019-06-07'
-final_filename='C:\\Users\\Ashwin\\Downloads\\synchedfile.csv'
-DIC_file='C:\\Users\\Ashwin\\Downloads\\DIC_straindata06072019_7.csv'
-Instron_file='C:\\Users\\Ashwin\\Downloads\\Instron_06072019_7.csv'
+final_filename='C:\\Users\\computer_name\\Downloads\\synchedfile.csv'
+DIC_file='C:\\Users\\computer_name\\Downloads\\DIC_straindata06072019_7.csv'
+Instron_file='C:\\Users\\computer_name\\Downloads\\Instron_06072019_7.csv'
 
 
 synchFile=synchDICInstron(DIC_file,Instron_file,date)
