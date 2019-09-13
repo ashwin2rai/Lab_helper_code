@@ -22,8 +22,10 @@ class synchDICInstron:
             del(temp_var)
         else:
             self.header_sp = header_var-1
-        
-        inst_dat=pd.read_csv(self.Instron_file,header=self.header_sp)
+        try:
+            inst_dat=pd.read_csv(self.Instron_file,header=self.header_sp)
+        except:
+            print('Cannot read Instron DIC CSV. Try specifying the headers explicitely for ex: writetoCSV(filename,Instronheader=17,DIC_header=3). Please see class documentation for more info.')
         inst_dat.columns=pd.read_csv(self.Instron_file,header=self.header_sp-1,nrows=2).columns
         inst_dat.index=pd.to_datetime(inst_dat['Time'],unit='s',origin=pd.Timestamp(self.date))
         del(inst_dat['Time'])
